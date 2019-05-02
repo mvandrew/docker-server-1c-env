@@ -1,33 +1,43 @@
-FROM ubuntu:16.04
-LABEL maintainer="info@msav.ru"
+FROM ubuntu:xenial
+
+LABEL maintainer "Andrey Mishchenko <info@msav.ru>"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+ENV PGSQL_TIMEZONE="Europe/Moscow"
+
 RUN apt-get update -y \
+    && `# --------------- Install common packages --------------- ` \
     && apt-get -y --no-install-recommends install \
         bzip2 \
-        locales \
         wget \
         gnupg2 \
         rename \
-        net-tools \
         gosu \
+    && `# --------------- Configure server locale --------------- ` \
+    apt-get -y --no-install-recommends install \
+        locales \
+        tzdata \
+    && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8 \
+    && ln -snf /usr/share/zoneinfo/${PGSQL_TIMEZONE} /etc/localtime \
+    && dpkg-reconfigure -f noninteractive tzdata \
+    && `# --------------- Install optional packages --------------- ` \
+    && apt-get -y --no-install-recommends install \
+        net-tools \
+        git \
         nano \
-        mc \
-    && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
+        mc
 
-ENV LANG ru_RU.utf8
+ENV LANG="ru_RU.utf8"
 
-ENV PGSQL_MAJOR 9.6
-ENV PGSQL_VERSION ${PGSQL_MAJOR}.7-1
-ENV PGSQL_DIST ./dist
-ENV PGSQL_DEST /tmp/pgsql
+ENV PGSQL_MAJOR="9.6" \
+    PGSQL_VERSION="${PGSQL_MAJOR}.7-1" \
+    PGSQL_DIST="./dist" \
+    PGSQL_DEST="/tmp/pgsql"
 
-ADD ${PGSQL_DIST} /opt/
-
-RUN mkdir ${PGSQL_DEST} \
-    && cp /opt/postgresql* ${PGSQL_DEST} \
-    && find ${PGSQL_DEST} -type f -exec rename -v 'y/_/\-/' {} \;
+RUN mkdir ${PGSQL_DEST}
+COPY ${PGSQL_DIST} ${PGSQL_DEST}
+RUN find ${PGSQL_DEST} -type f -exec rename -v 'y/_/\-/' {} \;
 
 RUN if [ ! -f ${PGSQL_DEST}/postgresql-${PGSQL_VERSION}.1C-amd64-deb.tar.bz2 ]; then \
         echo "File '${PGSQL_DEST}/postgresql_${PGSQL_VERSION}.1C_amd64_deb.tar.bz2' not found."; \
@@ -58,11 +68,10 @@ RUN sed -ri s/^shared_preload_libraries/#shared_preload_libraries/ /etc/postgres
 ENV PATH /usr/lib/postgresql/${PGSQL_MAJOR}/bin:$PATH
 ENV PGDATA /var/lib/postgresql/data
 
-COPY ./entrypoint.sh /
-RUN chmod 775 /entrypoint.sh
-
-ENTRYPOINT [ "/entrypoint.sh" ]
-#CMD [ "/entrypoint.sh" ]
+COPY ./docker-entrypoint.sh /
+RUN chmod 775 /docker-entrypoint.sh
 
 EXPOSE 5432
-    
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
+#CMD [ "/entrypoint.sh" ]

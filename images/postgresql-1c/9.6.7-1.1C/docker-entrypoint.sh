@@ -7,7 +7,6 @@ fi
 chown -R postgres "$PGDATA"
 
 if [ -z "$(ls -A "$PGDATA")" ]; then
-    #gosu postgres initdb -E 'UTF-8' --locale='ru_RU.UTF-8' --lc-collate='ru_RU.UTF-8' --lc-ctype='ru_RU.UTF-8'
     gosu postgres initdb --locale=ru_RU.UTF-8 --lc-collate=ru_RU.UTF-8 --lc-ctype=ru_RU.UTF-8 --encoding=UTF8
 
     sed -ri /local\\s+all\\s+postgres\\s+/s/peer/trust/ /etc/postgresql/9.6/main/pg_hba.conf
