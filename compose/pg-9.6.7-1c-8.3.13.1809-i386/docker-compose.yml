@@ -4,5 +4,10 @@ services:
 
   db:
     build: ../../images/postgresql-1c/9.6.7-1.1C
-    restart: always
-    
+    #restart: always
+    #volumes:
+      # - ${PG_DATA_HOST}:${PG_DATA_CONTAINER}
+    #ports:
+    #  - ${PG_PORT_HOST}:${PG_PORT_CONTAINER}
+    stdin_open: true
+    tty: true

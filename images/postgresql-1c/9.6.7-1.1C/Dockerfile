@@ -24,6 +24,7 @@ RUN apt-get update -y \
     && `# --------------- Install optional packages --------------- ` \
     && apt-get -y --no-install-recommends install \
         net-tools \
+        lsof \
         git \
         nano \
         mc
@@ -31,9 +32,10 @@ RUN apt-get update -y \
 ENV LANG="ru_RU.utf8"
 
 ENV PGSQL_MAJOR="9.6" \
-    PGSQL_VERSION="${PGSQL_MAJOR}.7-1" \
+    PGSQL_VERSION="9.6.7-1" \
     PGSQL_DIST="./dist" \
-    PGSQL_DEST="/tmp/pgsql"
+    PGSQL_DEST="/tmp/pgsql" \
+    PGSQL_USER="postgres"
 
 RUN mkdir ${PGSQL_DEST}
 COPY ${PGSQL_DIST} ${PGSQL_DEST}
@@ -71,7 +73,13 @@ ENV PGDATA /var/lib/postgresql/data
 COPY ./docker-entrypoint.sh /
 RUN chmod 775 /docker-entrypoint.sh
 
-EXPOSE 5432
+#RUN gosu postgres initdb --locale=ru_RU.UTF-8 --lc-collate=ru_RU.UTF-8 --lc-ctype=ru_RU.UTF-8 --encoding=UTF8 \
+#    && sed -ri /local\\s+all\\s+postgres\\s+/s/peer/trust/ /etc/postgresql/9.6/main/pg_hba.conf \
+#    && { echo; echo "host all all all md5"; } | tee -a /etc/postgresql/9.6/main/pg_hba.conf > /dev/null
+    #&& /etc/init.d/postgresql start \
+    #&& gosu postgres psql -c "ALTER USER ${PGSQL_USER} WITH PASSWORD '${PGSQL_USER}' ;"
+
+#EXPOSE 5432
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
-#CMD [ "/entrypoint.sh" ]
+#RUN /etc/init.d/postgresql start
