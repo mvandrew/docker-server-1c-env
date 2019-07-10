@@ -1,2 +1,2 @@
 #!/bin/sh
-sudo docker build -t postgresql-1c .
+sudo docker build --tag msav/postgresql-1c .

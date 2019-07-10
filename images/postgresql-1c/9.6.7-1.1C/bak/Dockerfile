@@ -15,7 +15,7 @@ RUN apt-get update -y \
         rename \
         gosu \
     && `# --------------- Configure server locale --------------- ` \
-    && apt-get -y --no-install-recommends install \
+    apt-get -y --no-install-recommends install \
         locales \
         tzdata \
     && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8 \
@@ -31,18 +31,20 @@ RUN apt-get update -y \
 
 ENV LANG="ru_RU.utf8"
 
-ENV PGSQL_MAJOR="9.6" 
-ENV PGSQL_VERSION="${PGSQL_MAJOR}.7-1" \
+ENV PGSQL_MAJOR="9.6" \
+    PGSQL_VERSION="9.6.7-1" \
     PGSQL_DIST="./dist" \
     PGSQL_DEST="/tmp/pgsql" \
     PGSQL_USER="postgres"
 
-#RUN groupadd ${PGSQL_USER} --gid=1000 \
-#    && useradd --gid ${PGSQL_USER} --uid=1000 ${PGSQL_USER}
-
 RUN mkdir ${PGSQL_DEST}
 COPY ${PGSQL_DIST} ${PGSQL_DEST}
 RUN find ${PGSQL_DEST} -type f -exec rename -v 'y/_/\-/' {} \;
+
+RUN if [ ! -f ${PGSQL_DEST}/postgresql-${PGSQL_VERSION}.1C-amd64-deb.tar.bz2 ]; then \
+        echo "File '${PGSQL_DEST}/postgresql_${PGSQL_VERSION}.1C_amd64_deb.tar.bz2' not found."; \
+        exit 1; \
+    fi
 
 RUN cd ${PGSQL_DEST} \
     && tar -xvjf postgresql-${PGSQL_VERSION}.1C-amd64-deb.tar.bz2 \
@@ -60,10 +62,10 @@ RUN cd ${PGSQL_DEST} \
         postgresql-common \
     && dpkg -i libpq5-${PGSQL_VERSION}.1C-amd64.deb \
     && dpkg -i postgresql-client-9.6-${PGSQL_VERSION}.1C-amd64.deb \
-    && dpkg -i postgresql-9.6-${PGSQL_VERSION}.1C-amd64.deb \
-    && sed -ri s/^shared_preload_libraries/#shared_preload_libraries/ /etc/postgresql/9.6/main/postgresql.conf \
-    && sed -ri /local\\s+all\\s+postgres\\s+/s/peer/trust/ /etc/postgresql/9.6/main/pg_hba.conf \
-    && { echo; echo "host all all all md5"; } | tee -a /etc/postgresql/9.6/main/pg_hba.conf > /dev/null
+    && dpkg -i postgresql-9.6-${PGSQL_VERSION}.1C-amd64.deb
+
+# RUN sed -ri /local\\s+all\\s+postgres\\s+/s/peer/trust/ /etc/postgresql/9.6/main/pg_hba.conf
+RUN sed -ri s/^shared_preload_libraries/#shared_preload_libraries/ /etc/postgresql/9.6/main/postgresql.conf
 
 ENV PATH /usr/lib/postgresql/${PGSQL_MAJOR}/bin:$PATH
 ENV PGDATA /var/lib/postgresql/data
@@ -71,7 +73,13 @@ ENV PGDATA /var/lib/postgresql/data
 COPY ./docker-entrypoint.sh /
 RUN chmod 775 /docker-entrypoint.sh
 
-EXPOSE 5432
+#RUN gosu postgres initdb --locale=ru_RU.UTF-8 --lc-collate=ru_RU.UTF-8 --lc-ctype=ru_RU.UTF-8 --encoding=UTF8 \
+#    && sed -ri /local\\s+all\\s+postgres\\s+/s/peer/trust/ /etc/postgresql/9.6/main/pg_hba.conf \
+#    && { echo; echo "host all all all md5"; } | tee -a /etc/postgresql/9.6/main/pg_hba.conf > /dev/null
+    #&& /etc/init.d/postgresql start \
+    #&& gosu postgres psql -c "ALTER USER ${PGSQL_USER} WITH PASSWORD '${PGSQL_USER}' ;"
+
+#EXPOSE 5432
 
 ENTRYPOINT [ "/docker-entrypoint.sh" ]
-CMD [ "postgres" ]
+#RUN /etc/init.d/postgresql start
