@@ -7,7 +7,6 @@ services:
     #restart: always
     #volumes:
       # - ${PG_DATA_HOST}:${PG_DATA_CONTAINER}
-    #ports:
-    #  - ${PG_PORT_HOST}:${PG_PORT_CONTAINER}
-    stdin_open: true
-    tty: true
+    ports:
+      - ${PG_PORT_HOST}:${PG_PORT_CONTAINER}
+    
