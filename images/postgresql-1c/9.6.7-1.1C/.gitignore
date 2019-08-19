@@ -1,3 +1,5 @@
-/dist
-/bak
-/backup
+dist/*
+!dist/README.md
+
+bak/*
+backup/*

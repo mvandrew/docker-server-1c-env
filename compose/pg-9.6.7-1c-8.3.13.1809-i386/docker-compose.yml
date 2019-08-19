@@ -4,9 +4,13 @@ services:
 
   db:
     build: ../../images/postgresql-1c/9.6.7-1.1C
-    #restart: always
-    #volumes:
-      # - ${PG_DATA_HOST}:${PG_DATA_CONTAINER}
+    restart: always
+    volumes:
+      - ${PG_DATA_HOST}:${PG_DATA_CONTAINER}
     ports:
       - ${PG_PORT_HOST}:${PG_PORT_CONTAINER}
+    
+  srv1c:
+    build: ../../images/server-1c/8.3.13.1809-i386
+    restart: always
     
