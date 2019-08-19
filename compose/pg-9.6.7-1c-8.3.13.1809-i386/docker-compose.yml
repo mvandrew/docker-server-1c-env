@@ -13,4 +13,16 @@ services:
   srv1c:
     build: ../../images/server-1c/8.3.13.1809-i386
     restart: always
+    ports:
+      - ${SRV_1C_PORTS_HOST}:${SRV_1C_PORTS_CONTAINER}
+      - ${SRV_1C_PORTS_WP_HOST}:${SRV_1C_PORTS_WP_CONTAINER}
+#    links:
+#      - db:database
+#    depends_on:
+#      - db
+#    volumes:
+#      - ${SRV_1C_BIN_HOST}:${SRV_1C_BIN_CONTAINER}
+#      - ${SRV_1C_CONF_HOST}:${SRV_1C_CONF_CONTAINER}
+#      - ${SRV_1C_LOG_HOST}:${SRV_1C_LOG_CONTAINER}
+    
     

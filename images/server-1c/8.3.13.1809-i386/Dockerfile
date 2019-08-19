@@ -69,6 +69,7 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 
 VOLUME /home/usr1cv8
 VOLUME /var/log/1C
+VOLUME /opt/1C
 
 EXPOSE 1540-1541 1560-1591
 
